@@ -36,8 +36,25 @@ function detectCategory(text:string){
   return best;
 }
 
-function tryHeading(text:string){ const lines=text.split(/
-+/); for(const line of lines){ const s=line.trim(); if(!s) continue; const isShort=s.length<=80; const isCaps=s===s.toUpperCase() && /[A-Z]/.test(s); const isTitle=/^(?:[A-Z][a-z]+)(?:\s+[A-Z][a-z]+)*$/.test(s); if(isShort && (isCaps||isTitle)) return s } return '' }
+
+function tryHeading(text:string){
+  // Split on one or more newlines
+  const lines = text.split(/\n+/);
+
+  for(const line of lines){
+    const s = line.trim();
+    if(!s) continue;
+
+    const isShort = s.length <= 80;
+    const isCaps = s === s.toUpperCase() && /[A-Z]/.test(s);
+    const isTitle = /^(?:[A-Z][a-z]+)(?:\s+[A-Z][a-z]+)*$/.test(s);
+
+    if (isShort && (isCaps || isTitle)) return s;
+  }
+
+  return '';
+}
+
 export function buildSectionsFromExtraction(extraction:{pages:{page:number;text:string;source:string}[]}):Sections{ const sections=emptySections(); for(const p of extraction.pages){ const cat=detectCategory(p.text); const title=tryHeading(p.text)||`Page ${p.page}`; const a=firstSentence(p.text); const b=firstSentence(p.text.slice(a.length)); const body=(a+' '+b).trim(); sections[cat].push({title,body,page:p.page}) } return sections }
 export type Fact = { field:string; value:string; page?:number }
 const FIELD_PATTERNS = [
