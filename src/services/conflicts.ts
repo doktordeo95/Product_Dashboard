@@ -1,0 +1,4 @@
+
+import { getAllFacts } from './storage'
+export type Conflict = { field:string; values:{ value:string; source:{ docId:string; docName?:string; page?:number } }[] }
+export function detectConflicts(productId:string): Conflict[]{ const all=getAllFacts(productId)||{}; const map:any={}; for(const docId of Object.keys(all)){ const entry=all[docId]; const docName=entry?.docName; for(const f of (entry?.facts||[])){ const key=(f.field||'').trim().toLowerCase(); if(!map[key]) map[key]=[]; if(!map[key].some((v:any)=>v.value.toLowerCase()===f.value.toLowerCase())){ map[key].push({ value:f.value, source:{ docId, docName, page:f.page } }) } } } const out:Conflict[]=[]; for(const k of Object.keys(map)){ const arr=map[k]; const distinct=new Set(arr.map((v:any)=>v.value.toLowerCase())); if(distinct.size>1){ out.push({ field:k.replace(/\w/g, s=>s.toUpperCase()), values:arr }) } } return out }
