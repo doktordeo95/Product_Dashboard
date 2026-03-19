@@ -29,14 +29,14 @@ function detectCategory(text: string) {
   let best = 'overview', score = 0;
 
   for (const c of CATEGORIES) {
-    let s = 0;
-    for (const k of c.kw) if (t.includes(k)) s++;
-    if (s > score) { score = s; best = c.key; }
+    let count = 0;
+    for (const kw of c.kw) if (t.includes(kw)) count++;
+    if (count > score) { score = count; best = c.key; }
   }
 
   if (score === 0) {
-    const nums = (t.match(/\b(\d+[\.,]?\d*\s?(mm|cm|m|kg|w|v|hz|db|l|m³\/h|m3\/h))\b/gi) || []).length;
-    if (nums >= 2) return 'specs';
+    const matches = (t.match(/\b(\d+[\.,]?\d*\s?(mm|cm|m|kg|w|v|hz|db|l|m³\/h|m3\/h))\b/gi) || []).length;
+    if (matches >= 2) return 'specs';
   }
 
   return best;
@@ -47,9 +47,11 @@ function tryHeading(text: string) {
   for (const line of lines) {
     const s = line.trim();
     if (!s) continue;
+
     const isShort = s.length <= 80;
     const isCaps = s === s.toUpperCase() && /[A-Z]/.test(s);
     const isTitle = /^(?:[A-Z][a-z]+)(?:\s+[A-Z][a-z]+)*$/.test(s);
+
     if (isShort && (isCaps || isTitle)) return s;
   }
   return '';
@@ -59,6 +61,7 @@ export function buildSectionsFromExtraction(extraction: {
   pages: { page: number; text: string; source: string }[];
 }): Sections {
   const sections = emptySections();
+
   for (const p of extraction.pages) {
     const cat = detectCategory(p.text);
     const title = tryHeading(p.text) || `Page ${p.page}`;
@@ -67,11 +70,6 @@ export function buildSectionsFromExtraction(extraction: {
     const body = (a + ' ' + b).trim();
     sections[cat].push({ title, body, page: p.page });
   }
+
   return sections;
 }
-
-export type Fact = { field: string; value: string; page?: number };
-
-const FIELD_PATTERNS = [
-  { field: 'Voltage', re: /\b(\d{2,3})\s?V\b/i },
-  { field: 'Frequency', re: /\b(\d{2,3})\s?Hz\b/i },
